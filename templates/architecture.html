@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}System Architecture | CertChain{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title" style="text-align: center; width: 100%;">
+        <h1 style="font-size: 2.25rem; margin-bottom: 0.5rem;">System Architecture</h1>
+        <p style="color: var(--text-muted);">Deep dive into the cryptographic engine and data flow of CertChain.</p>
+    </div>
+</div>
+
+<div class="container" style="margin-bottom: 3rem;">
+    <h3 style="margin-bottom: 2rem; text-align: center;">Trust Flow Diagram</h3>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 2rem 0;">
+        <!-- Actor: User -->
+        <div style="display: flex; align-items: center; gap: 30px; width: 100%; max-width: 900px;">
+            <div style="background: var(--bg-nav); color: white; padding: 1rem 2rem; border-radius: var(--radius-md); font-weight: 700; min-width: 180px; text-align: center; box-shadow: var(--shadow-md);">
+                🎓 User / Admin
+            </div>
+            <div style="flex: 1; height: 2px; background: var(--border-color); position: relative; display: flex; align-items: center; justify-content: center;">
+                <span style="background: white; padding: 0 10px; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Request / Action</span>
+                <span style="position: absolute; right: -5px; font-size: 20px;">➡️</span>
+            </div>
+            <div style="background: var(--primary); color: white; padding: 1rem 2rem; border-radius: var(--radius-md); font-weight: 700; min-width: 180px; text-align: center; box-shadow: var(--shadow-md);">
+                ⚙️ Flask Backend
+            </div>
+        </div>
+
+        <!-- Split paths -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; width: 100%; max-width: 900px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <div style="width: 100%; height: 2px; background: var(--border-color); position: relative; margin-bottom: 10px;">
+                    <span style="position: absolute; right: 0; top: -10px; font-size: 20px;">⬇️</span>
+                </div>
+                <div style="background: #f1f5f9; color: var(--bg-nav); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); width: 100%; text-align: center; font-weight: 700; box-shadow: var(--shadow-sm);">
+                    🗄️ SQLite Database
+                    <div style="font-size: 0.7rem; font-weight: 400; color: var(--text-muted); margin-top: 5px;">Fast Access Certificate Records</div>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <div style="width: 100%; height: 2px; background: var(--border-color); position: relative; margin-bottom: 10px;">
+                    <span style="position: absolute; right: 0; top: -10px; font-size: 20px;">⬇️</span>
+                </div>
+                <div style="background: var(--accent); color: white; padding: 1.5rem; border-radius: var(--radius-md); width: 100%; text-align: center; font-weight: 700; box-shadow: var(--shadow-md);">
+                    ⛓️ Blockchain Ledger
+                    <div style="font-size: 0.7rem; font-weight: 400; opacity: 0.9; margin-top: 5px;">Immutable Cryptographic Hashes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification merge -->
+        <div style="width: 100%; max-width: 900px; height: 2px; background: var(--border-color); position: relative; margin: 20px 0;">
+            <span style="position: absolute; left: 50%; transform: translateX(-50%); top: -10px; font-size: 20px;">⬆️</span>
+        </div>
+        <div style="background: var(--bg-nav); color: white; padding: 1.5rem 3rem; border-radius: var(--radius-md); font-weight: 700; text-align: center; box-shadow: var(--shadow-lg);">
+            🏁 FINAL VERIFICATION RESULT
+            <div style="font-size: 0.8rem; font-weight: 400; color: #94a3b8; margin-top: 5px;">Cross-referencing DB record with Blockchain Block</div>
+        </div>
+    </div>
+</div>
+
+<div class="kpi-grid" style="margin-top: 3rem;">
+    <div class="card">
+        <div class="card-body">
+            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--primary);">🔑</span> SHA-256 Hashing
+            </h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                Hashing is a one-way function. We take the certificate details and generate a 64-character "digital fingerprint".
+            </p>
+            <div style="background: var(--bg-muted); padding: 0.75rem; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); word-break: break-all;">
+                Input $\rightarrow$ Hash(Data) $\rightarrow$ Fingerprint
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--primary);">🔗</span> Previous-Hash Linking
+            </h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                Every block contains the hash of the previous block. This creates a chain. If you change Block 1, Block 2's "previous hash" pointer becomes wrong.
+            </p>
+            <div style="background: var(--bg-muted); padding: 0.75rem; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary);">
+                Block N $\rightarrow$ contains $\rightarrow$ Hash(Block N-1)
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--primary);">🛡️</span> Tamper Detection
+            </h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                The system doesn't just check if the ID exists; it re-hashes the data and checks if that hash is anchored in the valid blockchain.
+            </p>
+            <div style="background: var(--bg-muted); padding: 0.75rem; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary);">
+                DB Hash == Blockchain Hash ? $\rightarrow$ ✅
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

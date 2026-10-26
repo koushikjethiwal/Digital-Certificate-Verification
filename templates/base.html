@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CertChain | Digital Certificate Verification{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🎓</span>
+                <span class="logo-text">Cert<span>Chain</span></span>
+            </a>
+
+            <div class="nav-menu">
+                {% if session.get('user_id') %}
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/issue" class="nav-link">Issue</a>
+                    <a href="/verify" class="nav-link">Verify</a>
+
+                    {% if session.get('role') == 'admin' %}
+                        <a href="/explorer" class="nav-link">Explorer</a>
+                        <a href="/users" class="nav-link">Manage Users</a>
+                    {% endif %}
+
+                    <a href="/landing" class="nav-link btn-outline">About</a>
+
+                    <div style="display: flex; align-items: center; gap: 15px; margin-left: 15px; padding-left: 15px; border-left: 1px solid var(--border-color);">
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--bg-nav);">{{ session.get('username') }}</div>
+                            <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">{{ session.get('role') }}</div>
+                        </div>
+                        <a href="/logout" class="btn btn-ghost" style="padding: 5px 10px; font-size: 0.75rem;">Logout</a>
+                    </div>
+                {% else %}
+                    <a href="/landing" class="nav-link btn-outline">About</a>
+                    <a href="/login" class="nav-link btn-primary" style="padding: 5px 15px;">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 CertChain Academic Prototype. Built for Educational Purposes.</p>
+            <div class="footer-links">
+                <a href="/landing">How it Works</a>
+                <a href="/explorer">Blockchain View</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

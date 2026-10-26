@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Certificate | CertChain{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 650px; margin: 0 auto;">
+    <div class="page-header" style="justify-content: center; text-align: center; flex-direction: column;">
+        <h1 style="font-size: 2.25rem; margin-bottom: 0.5rem;">Issue New Certificate</h1>
+        <p style="color: var(--text-muted);">Generate a blockchain-anchored credential for a student.</p>
+    </div>
+
+    {% if message %}
+    <div class="alert {% if 'Success' in message %}alert-success{% else %}alert-error{% endif %}">
+        {% if 'Success' in message %}
+            <span style="font-size: 1.2rem;">✅</span>
+        {% else %}
+            <span style="font-size: 1.2rem;">❌</span>
+        {% endif %}
+        <div style="flex: 1;">{{ message }}</div>
+    </div>
+    {% endif %}
+
+    <div class="card" style="box-shadow: var(--shadow-lg); border-top: 5px solid var(--primary);">
+        <div class="card-body" style="padding: 2.5rem;">
+            <form action="/issue" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Student Full Name</label>
+                    <input type="text" name="student_name" class="input-field" placeholder="Enter full legal name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Course / Certification Name</label>
+                    <input type="text" name="course_name" class="input-field" placeholder="e.g. B.Tech in Data Science" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issuing Organization</label>
+                    <input type="text" name="organization" class="input-field" placeholder="e.g. National Institute of Technology" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Date</label>
+                    <input type="date" name="issue_date" class="input-field" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem; font-size: 1rem; font-weight: 700; margin-top: 1rem;">
+                    🔒 Lock in Blockchain
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+        <p>This action will generate a SHA-256 fingerprint and append a new block to the immutable ledger.</p>
+    </div>
+</div>
+{% endblock %}

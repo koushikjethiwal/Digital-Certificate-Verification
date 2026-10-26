@@ -1,0 +1,17 @@
+venv/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.DS_Store
+backups/
+data/certificates.db
+data/blockchain.json
+*.db
+*.sqlite
+*.sqlite3
+data/*.json
+CertChain_Synopsis.docx
+CertChain_Synopsis.pdf
+presentation_guide.md

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain Explorer | CertChain{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h1 style="font-size: 2.25rem;">Blockchain Explorer</h1>
+        <p>Inspect the immutable ledger. Every block is cryptographically linked to its predecessor.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<!-- Chain Summary -->
+<div class="kpi-grid" style="margin-bottom: 3rem;">
+    <div class="kpi-card">
+        <div class="kpi-label">Ledger Height</div>
+        <div class="kpi-value">{{ chain|length }} Blocks</div>
+        <div class="kpi-status" style="color: var(--text-muted); font-size: 0.75rem;">Including Genesis Block</div>
+    </div>
+    <div class="kpi-card" style="border-top: 4px solid {% if chain_valid %}var(--accent){% else %}var(--danger){% endif %};">
+        <div class="kpi-label">Chain Integrity Status</div>
+        <div class="kpi-value" style="font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            {% if chain_valid %}
+                <span style="color: var(--accent);">VALIDATED ✅</span>
+            {% else %}
+                <span style="color: var(--danger);">CORRUPTED ❌</span>
+            {% endif %}
+        </div>
+        <div class="kpi-status" style="color: var(--text-muted); font-size: 0.8rem;">{{ validation_message }}</div>
+    </div>
+</div>
+
+<!-- Visual Chain -->
+<div class="chain-container">
+    {% for block in chain %}
+    <div class="block-node" id="block-{{ block.index }}">
+        <div class="block-top">
+            <span class="block-index">Block #{{ block.index }}</span>
+            <span class="mono" style="font-size: 0.7rem; color: var(--text-muted);">{{ block.timestamp }}</span>
+        </div>
+
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 1rem;">
+                <span class="block-field-label">Payload:</span>
+                <span class="block-field-value" style="font-weight: 600; color: var(--bg-nav);">{{ block.data }}</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 1rem;">
+                <span class="block-field-label">Previous Hash:</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="block-field-value mono" style="color: var(--secondary);">{{ block.previous_hash }}</span>
+                    <button onclick="copyText('{{ block.previous_hash }}')" class="btn btn-ghost" style="padding: 2px 6px; font-size: 0.7rem;">📋</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px;">
+                <span class="block-field-label">Current Hash:</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="block-field-value block-hash-highlight mono">{{ block.hash }}</span>
+                    <button onclick="copyText('{{ block.hash }}')" class="btn btn-ghost" style="padding: 2px 6px; font-size: 0.7rem;">📋</button>
+                </div>
+            </div>
+
+            {% if block.index == 0 %}
+                <div style="margin-top: 1.5rem; padding: 0.5rem; background: var(--primary-light); color: var(--primary-dark); text-align: center; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                    ✨ Genesis Block ✨
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not loop.last %}
+    <div class="block-link">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M19 12l-7 7-7-7"/>
+        </svg>
+        <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600; color: var(--primary); margin-top: 4px;">Linked via Hash</span>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<!-- Tampering Lab -->
+<div class="container" style="margin-top: 5rem; border: 2px dashed var(--danger); background: #fffafa;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h3 style="color: var(--danger);">⚠️ Tampering Simulation Lab</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Simulate a database attack to see how the blockchain detects it.
+            Modification of the database does NOT affect the locked blockchain records.
+        </p>
+    </div>
+
+    <form action="/tamper" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto; gap: 1rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Certificate ID to Modify</label>
+            <input type="text" name="cert_id" placeholder="e.g. CERT-A1B2C3" class="input-field" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>New Fake Name</label>
+            <input type="text" name="fake_name" placeholder="e.g. Fraudulent User" class="input-field" required>
+        </div>
+        <button type="submit" class="btn btn-danger" style="height: 45px;">Simulate Attack</button>
+    </form>
+
+    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+        <a href="/reset" class="btn btn-secondary" style="color: var(--text-main); border-color: var(--border-color);">🔄 Reset All Data to Valid State</a>
+    </div>
+</div>
+
+<script>
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Hash copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

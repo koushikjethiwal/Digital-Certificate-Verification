@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | CertChain{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h1 style="font-size: 2.25rem;">Platform Overview</h1>
+        <p>Real-time metrics and system health monitoring of the blockchain ledger.</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="/issue" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-weight: 600;">➕ Issue Certificate</a>
+        <a href="/verify" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-weight: 600;">🔍 Verify ID</a>
+    </div>
+</div>
+
+{% if not all_anchored %}
+<div class="alert alert-error" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; padding: 1.5rem; border-radius: var(--radius-md); background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;">
+    <span style="font-size: 1.5rem;">⚠️</span>
+    <div>
+        <strong style="display: block; font-size: 1rem;">Consistency Warning: Unanchored Records Detected</strong>
+        <p style="font-size: 0.85rem; margin: 0;">{{ unanchored_count }} certificate(s) exist in the database but are missing from the blockchain ledger. These records are currently unverified.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top KPI Section -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Total Certificates Issued</div>
+        <div class="kpi-value">{{ total_certs }}</div>
+        <div class="kpi-status" style="color: var(--primary); font-weight: 600; font-size: 0.75rem;">Stored in SQLite DB</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Blockchain Ledger Height</div>
+        <div class="kpi-value">{{ chain_length }}</div>
+        <div class="kpi-status" style="color: var(--primary); font-weight: 600; font-size: 0.75rem;">Including Genesis Block</div>
+    </div>
+    <div class="kpi-card" style="border-top: 4px solid {% if is_valid and all_anchored %}var(--accent){% else %}var(--danger){% endif %};">
+        <div class="kpi-label">System Integrity</div>
+        <div class="kpi-value" style="font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            {% if is_valid and all_anchored %}
+                <span style="color: var(--accent);">SECURE ✅</span>
+            {% else %}
+                <span style="color: var(--danger);">WARN ⚠️</span>
+            {% endif %}
+        </div>
+        <div class="kpi-status" style="color: var(--text-muted); font-size: 0.75rem;">
+            {% if not is_valid %}Chain corrupted.{% elif not all_anchored %}Unanchored records.{% else %}{{ validation_msg }}{% endif %}
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Anchoring Status</div>
+        <div class="kpi-value" style="font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            {% if all_anchored %}
+                <span style="color: var(--accent);">COMPLETE ✅</span>
+            {% else %}
+                <span style="color: var(--danger);">INCOMPLETE ❌</span>
+            {% endif %}
+        </div>
+        <div class="kpi-status" style="color: var(--text-muted); font-size: 0.75rem;">
+            {{ unanchored_count }} certificates not anchored
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Encryption Standard</div>
+        <div class="kpi-value" style="font-size: 1.5rem; color: var(--bg-nav);">SHA-256</div>
+        <div class="kpi-status" style="color: var(--text-muted); font-size: 0.75rem;">Cryptographic Fingerprinting</div>
+    </div>
+</div>
+
+<!-- Analytics Section -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3 style="font-size: 1rem; font-weight: 700;">Issuance Trend</h3>
+            <span class="mono" style="font-size: 0.7rem; color: var(--text-muted);">Volume over Time</span>
+        </div>
+        <div class="card-body" style="padding: 2rem;">
+            <div style="height: 300px; width: 100%;">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 style="font-size: 1rem; font-weight: 700;">Distribution by Course</h3>
+            <span class="mono" style="font-size: 0.7rem; color: var(--text-muted);">Credential Composition</span>
+        </div>
+        <div class="card-body" style="display: flex; justify-content: center; align-items: center; padding: 2rem;">
+            <div style="height: 300px; width: 300px;">
+                <canvas id="distChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lower Grid: Activity and Actions -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Recent Activity -->
+    <div class="card">
+        <div class="card-header">
+            <h3 style="font-size: 1rem; font-weight: 700;">Recent Certificate Activity</h3>
+            <a href="/explorer" class="btn btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: var(--primary);">View Full Ledger</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Certificate ID</th>
+                            <th>Student Name</th>
+                            <th>Course</th>
+                            <th>Issue Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in recent_certs %}
+                        <tr>
+                            <td class="mono" style="font-weight: 600; color: var(--primary);">{{ cert['id'] }}</td>
+                            <td>{{ cert['student_name'] }}</td>
+                            <td>{{ cert['course_name'] }}</td>
+                            <td>{{ cert['issue_date'] }}</td>
+                            <td>
+                                <a href="/verify" class="btn btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: var(--primary);">Verify</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not recent_certs %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <div style="font-size: 2rem; margin-bottom: 1rem;">📂</div>
+                                <p>No certificates issued yet. Start by issuing your first digital credential.</p>
+                                <a href="/issue" class="btn btn-primary" style="margin-top: 1rem;">Issue First Certificate</a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Health -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="card">
+            <div class="card-header">
+                <h3 style="font-size: 1rem; font-weight: 700;">Quick Actions</h3>
+            </div>
+            <div class="card-body" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                <a href="/issue" class="btn btn-primary" style="justify-content: center;">➕ Issue New Cert</a>
+                <a href="/verify" class="btn btn-secondary" style="justify-content: center;">🔍 Manual Verification</a>
+                <a href="/explorer" class="btn btn-secondary" style="justify-content: center;">⛓️ Explore Blockchain</a>
+                <a href="/architecture" class="btn btn-secondary" style="justify-content: center;">📖 System Architecture</a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 style="font-size: 1rem; font-weight: 700;">System Health</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-muted); border-radius: var(--radius-sm);">
+                        <span style="font-size: 0.85rem; font-weight: 500;">DB Connectivity</span>
+                        <span class="status-badge badge-valid" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: var(--accent); color: white;">Online</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-muted); border-radius: var(--radius-sm);">
+                        <span style="font-size: 0.85rem; font-weight: 500;">Chain Status</span>
+                        <span class="status-badge" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: {% if is_valid %}var(--accent){% else %}var(--danger){% endif %}; color: white;">
+                            {% if is_valid %}Valid{% else %}Invalid{% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-muted); border-radius: var(--radius-sm);">
+                        <span style="font-size: 0.85rem; font-weight: 500;">Hashing Engine</span>
+                        <span class="mono" style="font-size: 0.7rem; color: var(--text-muted);">SHA-256</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Integration -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Issuance Trends Chart
+        const trendsData = {{ trends | safe }};
+        const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+        new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: trendsData.map(d => d.date),
+                datasets: [{
+                    label: 'Certificates Issued',
+                    data: trendsData.map(d => d.count),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#3b82f6'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Course Distribution Chart
+        const distData = {{ course_dist | safe }};
+        const distCtx = document.getElementById('distChart').getContext('2d');
+        new Chart(distCtx, {
+            type: 'doughnut',
+            data: {
+                labels: distData.map(d => d.label),
+                datasets: [{
+                    data: distData.map(d => d.value),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    });
+</script>
+{% endblock %}

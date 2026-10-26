@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users | CertChain{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h1 style="font-size: 2.25rem;">User Management</h1>
+        <p>Administrate authorized personnel and access levels for the CertChain platform.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="container" style="margin-bottom: 3rem;">
+    <div class="card" style="box-shadow: var(--shadow-lg); overflow: hidden;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 1.25rem; font-weight: 700;">Authorized Users</h3>
+            <span class="mono" style="font-size: 0.75rem; color: var(--text-muted);">Total: {{ users|length }} accounts</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td class="mono" style="color: var(--text-muted);">{{ user['id'] }}</td>
+                            <td style="font-weight: 600; color: var(--bg-nav);">{{ user['username'] }}</td>
+                            <td>
+                                <span class="status-badge" style="background: {% if user['role'] == 'admin' %}var(--primary){% else %}var(--bg-muted){% endif %}; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">
+                                    {{ user['role']|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-size: 0.85rem; color: {% if user['is_active'] %}var(--accent){% else %}var(--danger){% endif %}; font-weight: 600;">
+                                    {{ 'Active' if user['is_active'] else 'Disabled' }}
+                                </span>
+                            </td>
+                            <td style="text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
+                                <!-- Status Toggle -->
+                                <form action="/users" method="POST" style="display: inline;">
+                                    <input type="hidden" name="username" value="{{ user['username'] }}">
+                                    <input type="hidden" name="action" value="toggle_status">
+                                    <button type="submit" class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem;" title="Toggle Account Status">
+                                        {{ '🚫 Disable' if user['is_active'] else '✅ Enable' }}
+                                    </button>
+                                </form>
+
+                                <!-- Role Change -->
+                                <form action="/users" method="POST" style="display: inline; gap: 5px; align-items: center;">
+                                    <input type="hidden" name="username" value="{{ user['username'] }}">
+                                    <input type="hidden" name="action" value="change_role">
+                                    <select name="role" class="input-field" style="padding: 2px 5px; font-size: 0.7rem; width: auto;">
+                                        <option value="user" {% if user['role'] == 'user' %}selected{% endif %}>User</option>
+                                        <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem;">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not users %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                No users found in the system.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

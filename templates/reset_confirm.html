@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Reset | CertChain{% endblock %}
+
+{% block content %}
+<div class="page-header" style="justify-content: center; text-align: center; flex-direction: column;">
+    <h1 style="font-size: 2.25rem; color: var(--danger);">⚠️ Dangerous Action</h1>
+    <p style="color: var(--text-muted);">You are about to perform a complete system reset.</p>
+</div>
+
+<div class="container" style="max-width: 600px; margin: 0 auto;">
+    <div class="card" style="border-top: 10px solid var(--danger); padding: 3rem; text-align: center; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);">
+        <div style="font-size: 4rem; margin-bottom: 1.5rem;">🧨</div>
+        <h3 style="font-size: 1.75rem; margin-bottom: 1rem;">Wipe All Data?</h3>
+        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2.5rem;">
+            This will permanently delete all certificates from the SQLite database and reset the blockchain ledger to the Genesis block.
+            <br><strong style="color: var(--danger);">This action cannot be undone.</strong>
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/explorer" class="btn btn-secondary" style="padding: 1rem 2rem;">Cancel</a>
+            <form action="/reset" method="POST">
+                <button type="submit" class="btn btn-danger" style="padding: 1rem 2rem; font-weight: 700;">Yes, Wipe Everything</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
